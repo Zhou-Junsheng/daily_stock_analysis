@@ -60,14 +60,24 @@ def check_content_integrity(result: "AnalysisResult") -> Tuple[bool, List[str]]:
     intel = intel if isinstance(intel, dict) else None
     if intel is None or "risk_alerts" not in intel:
         missing.append("dashboard.intelligence.risk_alerts")
+    # Check sniper points - must have real prices (not placeholder XX )
     if result.decision_type in ("buy", "hold"):
         battle = dash.get("battle_plan")
         battle = battle if isinstance(battle, dict) else {}
         sp = battle.get("sniper_points")
         sp = sp if isinstance(sp, dict) else {}
+        # Check stop_loss
         stop_loss = sp.get("stop_loss")
         if stop_loss is None or (isinstance(stop_loss, str) and not stop_loss.strip()):
             missing.append("dashboard.battle_plan.sniper_points.stop_loss")
+        # Check ideal_buy - must be real price (not XX placeholder)
+        ideal_buy = sp.get("ideal_buy") or sp.get("buy_price") or sp.get("buy_point") or ""
+        if isinstance(ideal_buy, str) and ("XX" in ideal_buy or "在MA" in ideal_buy or not re.search(r'\d+(\.\d+)?', ideal_buy)):
+            missing.append("dashboard.battle_plan.sniper_points.ideal_buy")
+        # Check take_profit - must be real price
+        take_profit = sp.get("take_profit") or sp.get("target_price") or sp.get("target_point") or ""
+        if isinstance(take_profit, str) and ("XX" in take_profit or "前高" in take_profit or not re.search(r'\d+(\.\d+)?', take_profit)):
+            missing.append("dashboard.battle_plan.sniper_points.take_profit")
     return len(missing) == 0, missing
 
 
@@ -1296,7 +1306,7 @@ class GeminiAnalyzer:
 - **股票名称**：必须输出正确的中文全称（如"贵州茅台"而非"股票600519"）
 - **核心结论**：一句话说清该买/该卖/该等
 - **持仓分类建议**：空仓者怎么做 vs 持仓者怎么做
-- **具体狙击点位**：买入价、止损价、目标价（精确到分）
+- **具体狙击点位**：必须输出具体数字价格（如 44.50 元），禁止输出"XX元"或"在MA5附近"等占位符
 - **检查清单**：每项用 ✅/⚠️/❌ 标记
 - **消息面时间合规**：`latest_news`、`risk_alerts`、`positive_catalysts` 不得包含超出近{news_window_days}日或时间未知的信息
 
@@ -1411,7 +1421,11 @@ class GeminiAnalyzer:
             elif f == "dashboard.intelligence.risk_alerts":
                 lines.append("- dashboard.intelligence.risk_alerts: 风险警报列表（可为空数组）")
             elif f == "dashboard.battle_plan.sniper_points.stop_loss":
-                lines.append("- dashboard.battle_plan.sniper_points.stop_loss: 止损价")
+                lines.append("- dashboard.battle_plan.sniper_points.stop_loss: 止损价（必须为具体数字，如 45.30）")
+            elif f == "dashboard.battle_plan.sniper_points.ideal_buy":
+                lines.append("- dashboard.battle_plan.sniper_points.ideal_buy: 理想买入价（必须为具体数字，如 44.50，基于MA5/当前价格计算）")
+            elif f == "dashboard.battle_plan.sniper_points.take_profit":
+                lines.append("- dashboard.battle_plan.sniper_points.take_profit: 目标价位（必须为具体数字，如 52.00，基于前高/压力位计算）")
         return "\n".join(lines)
 
     def _build_integrity_retry_prompt(
