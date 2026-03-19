@@ -11,6 +11,7 @@ A股自选股智能分析系统 - AI分析层
 """
 
 import json
+import re
 import logging
 import math
 import time
