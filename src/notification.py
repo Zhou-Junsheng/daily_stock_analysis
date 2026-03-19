@@ -954,20 +954,19 @@ class NotificationService(
                         "### 🎯 作战计划",
                         "",
                     ])
-                    # 狙击点位
-                    sniper = battle.get('sniper_points', {})
-                                            report_lines.extend([
-                            "**📍 狙击点位**",
-                            "",
-                            "| 点位类型 | 价格 |",
-                            "|---------|------|",
-                            f"| 🎯 理想买入点 | {self._clean_sniper_value(sniper.get('ideal_buy', 'N/A'))} |",
-                            f"| 🔵 次优买入点 | {self._clean_sniper_value(sniper.get('secondary_buy', 'N/A'))} |",
-                            f"| 🛑 止损位 | {self._clean_sniper_value(sniper.get('stop_loss', 'N/A'))} |",
-                            f"| 🎊 目标位 | {self._clean_sniper_value(sniper.get('take_profit', 'N/A'))} |",
-                            "",
-                        ])
-                    # 仓位策略
+                    # 狙击点位（所有股票都必须展示）
+                    sniper = battle.get('sniper_points', {}) or {}
+                    report_lines.extend([
+                        "**[REDACTED]** 狙击点位**",
+                        "",
+                        "| 点位类型 | 价格 |",
+                        "|---------|------|",
+                        f"| 🎯 理想买入点 | {self._clean_sniper_value(sniper.get('ideal_buy', 'N/A'))} |",
+                        f"| 🔵 次优买入点 | {self._clean_sniper_value(sniper.get('secondary_buy', 'N/A'))} |",
+                        f"| 🛑 止损位 | {self._clean_sniper_value(sniper.get('stop_loss', 'N/A'))} |",
+                        f"| 🎊 目标位 | {self._clean_sniper_value(sniper.get('take_profit', 'N/A'))} |",
+                        "",
+                    ])
                     position = battle.get('position_strategy', {})
                     if position:
                         report_lines.extend([
