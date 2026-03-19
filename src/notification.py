@@ -956,8 +956,7 @@ class NotificationService(
                     ])
                     # 狙击点位
                     sniper = battle.get('sniper_points', {})
-                    if sniper:
-                        report_lines.extend([
+                                            report_lines.extend([
                             "**📍 狙击点位**",
                             "",
                             "| 点位类型 | 价格 |",
