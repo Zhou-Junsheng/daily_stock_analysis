@@ -60,8 +60,8 @@ def check_content_integrity(result: "AnalysisResult") -> Tuple[bool, List[str]]:
     intel = intel if isinstance(intel, dict) else None
     if intel is None or "risk_alerts" not in intel:
         missing.append("dashboard.intelligence.risk_alerts")
-    # Check sniper points - must have real prices (not placeholder XX )
-    if result.decision_type in ("buy", "hold"):
+    # Check sniper points for ALL decision types
+    if result.decision_type in ("buy", "hold", "观望", "sell", "减仓", "加仓", "持有"):
         battle = dash.get("battle_plan")
         battle = battle if isinstance(battle, dict) else {}
         sp = battle.get("sniper_points")
